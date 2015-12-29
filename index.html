@@ -1,0 +1,103 @@
+<h1 id="assignment-week-3">Assignment Week 3</h1>
+<p>Practical Machine Learning 27 / December / 2015</p>
+<p>Connect all the libraries</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RCurl)
+<span class="kw">require</span>(caret)
+<span class="kw">require</span>(ggplot2)
+<span class="kw">require</span>(randomForest)</code></pre></div>
+<p>URLS OF SOURCE DATA</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># URLS OF SOURCE DATA</span>
+URL_TRAIN &lt;-<span class="st"> &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;</span>
+URL_TEST &lt;-<span class="st"> &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;</span></code></pre></div>
+<p>DATA FRAMES WITH SOURCE DATA</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">set_train &lt;-<span class="st"> </span><span class="kw">read.csv</span>(URL_TRAIN,<span class="dt">na.strings=</span><span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>,<span class="st">&quot;&quot;</span>))
+set_test &lt;-<span class="st"> </span><span class="kw">read.csv</span>(URL_TEST,<span class="dt">na.strings=</span><span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>,<span class="st">&quot;&quot;</span>))</code></pre></div>
+<p>DATA FRAMES CLEANED OUT OF ROWS CONTAINING NAs VALUES</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cells_no_NAs&lt;-<span class="kw">apply</span>(!<span class="kw">is.na</span>(set_train),<span class="dv">2</span>,sum) ==<span class="st"> </span><span class="dv">19622</span>
+cells_no_NAs[<span class="st">&quot;X&quot;</span>] &lt;-<span class="st"> </span><span class="ot">FALSE</span>
+useful_data_train &lt;-<span class="st"> </span>set_train[,cells_no_NAs]
+useful_data_test &lt;-<span class="st"> </span>set_test[,cells_no_NAs]
+
+InTrain&lt;-<span class="kw">createDataPartition</span>(<span class="dt">y=</span>useful_data_train$classe,<span class="dt">p=</span><span class="fl">0.75</span>,<span class="dt">list=</span><span class="ot">FALSE</span>)
+set_train_1 &lt;-<span class="st"> </span>useful_data_train[InTrain,]</code></pre></div>
+<p>TRAINING AN ALGORITHM BASED ON RANDOM FOREST MODEL</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">model_control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method=</span><span class="st">&quot;cv&quot;</span>,<span class="dt">number=</span><span class="dv">5</span>, <span class="dt">allowParallel=</span>T, <span class="dt">verbose=</span>T)
+random_forest_model&lt;-<span class="kw">train</span>(classe~.,<span class="dt">data=</span>set_train_1,<span class="dt">method=</span><span class="st">&quot;rf&quot;</span>,
+                <span class="dt">trControl=</span>model_control, <span class="dt">verbose =</span> F)
+
+<span class="kw">print</span>(random_forest_model)
+<span class="kw">print</span>(random_forest_model$finalModel)</code></pre></div>
+<p>Results</p>
+<pre><code>+ Fold1: mtry= 2
+- Fold1: mtry= 2
++ Fold1: mtry=41
+- Fold1: mtry=41
++ Fold1: mtry=80
+- Fold1: mtry=80
++ Fold2: mtry= 2
+- Fold2: mtry= 2
++ Fold2: mtry=41
+- Fold2: mtry=41
++ Fold2: mtry=80
+- Fold2: mtry=80
++ Fold3: mtry= 2
+- Fold3: mtry= 2
++ Fold3: mtry=41
+- Fold3: mtry=41
++ Fold3: mtry=80
+- Fold3: mtry=80
++ Fold4: mtry= 2
+- Fold4: mtry= 2
++ Fold4: mtry=41
+- Fold4: mtry=41
++ Fold4: mtry=80
+- Fold4: mtry=80
++ Fold5: mtry= 2
+- Fold5: mtry= 2
++ Fold5: mtry=41
+- Fold5: mtry=41
++ Fold5: mtry=80
+- Fold5: mtry=80
+Aggregating results
+Selecting tuning parameters
+Fitting mtry = 41 on full training set</code></pre>
+<p>Random forest</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Random Forest
+
+<span class="dv">14718</span> samples
+   <span class="dv">58</span> predictor
+    <span class="dv">5</span> classes:<span class="st"> &#39;A&#39;</span>, <span class="st">&#39;B&#39;</span>, <span class="st">&#39;C&#39;</span>, <span class="st">&#39;D&#39;</span>, <span class="st">&#39;E&#39;</span>
+
+No pre-processing
+Resampling:<span class="st"> </span>Cross-<span class="kw">Validated</span> (<span class="dv">5</span> fold)
+Summary of sample sizes:<span class="st"> </span><span class="dv">11774</span>, <span class="dv">11773</span>, <span class="dv">11775</span>, <span class="dv">11775</span>, <span class="dv">11775</span>
+Resampling results across tuning parameters:
+
+<span class="st">  </span>mtry  Accuracy   Kappa      Accuracy SD   Kappa SD
+   <span class="dv">2</span>    <span class="fl">0.9873625</span>  <span class="fl">0.9840117</span>  <span class="fl">0.0012563542</span>  <span class="fl">0.0015893126</span>
+  <span class="dv">41</span>    <span class="fl">0.9989808</span>  <span class="fl">0.9987109</span>  <span class="fl">0.0007208293</span>  <span class="fl">0.0009117816</span>
+  <span class="dv">80</span>    <span class="fl">0.9987090</span>  <span class="fl">0.9983671</span>  <span class="fl">0.0009730288</span>  <span class="fl">0.0012307805</span>
+
+Accuracy was used to select the optimal model using  the largest value.
+The final value used for the model was mtry =<span class="st"> </span><span class="dv">41</span>.
+
+Call:
+<span class="st"> </span><span class="kw">randomForest</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y, <span class="dt">mtry =</span> param$mtry, <span class="dt">verbose =</span> ..<span class="dv">1</span>)
+               Type of random forest:<span class="st"> </span>classification
+                     Number of trees:<span class="st"> </span><span class="dv">500</span>
+No. of variables tried at each split:<span class="st"> </span><span class="dv">41</span>
+
+        OOB estimate of  error rate:<span class="st"> </span><span class="fl">0.07</span>%
+Confusion matrix:
+<span class="st">     </span>A    B    C    D    E  class.error
+A <span class="dv">4185</span>    <span class="dv">0</span>    <span class="dv">0</span>    <span class="dv">0</span>    <span class="dv">0</span> <span class="fl">0.0000000000</span>
+B    <span class="dv">2</span> <span class="dv">2846</span>    <span class="dv">0</span>    <span class="dv">0</span>    <span class="dv">0</span> <span class="fl">0.0007022472</span>
+C    <span class="dv">0</span>    <span class="dv">3</span> <span class="dv">2564</span>    <span class="dv">0</span>    <span class="dv">0</span> <span class="fl">0.0011686794</span>
+D    <span class="dv">0</span>    <span class="dv">0</span>    <span class="dv">3</span> <span class="dv">2408</span>    <span class="dv">1</span> <span class="fl">0.0016583748</span>
+E    <span class="dv">0</span>    <span class="dv">0</span>    <span class="dv">0</span>    <span class="dv">1</span> <span class="dv">2705</span> <span class="fl">0.0003695492</span></code></pre></div>
+<p>Run prediction</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pred &lt;-<span class="st"> </span><span class="kw">predict</span>(random_forest_model, set_test)
+pred</code></pre></div>
+<p>prediction results</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> [<span class="dv">1</span>] B A B A A E D B A A B C B A E E A B B B
+Levels:<span class="st"> </span>A B C D E</code></pre></div>
