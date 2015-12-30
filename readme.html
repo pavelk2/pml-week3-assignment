@@ -1,0 +1,111 @@
+<h1 id="assignment-week-3">Assignment Week 3</h1>
+<p>Practical Machine Learning 27 / December / 2015</p>
+<p>Connect all the libraries</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RCurl)</code></pre></div>
+<pre><code>## Loading required package: methods
+## Loading required package: bitops</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(caret)</code></pre></div>
+<pre><code>## Loading required package: caret
+## Loading required package: lattice
+## Loading required package: ggplot2</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(ggplot2)
+<span class="kw">require</span>(randomForest)</code></pre></div>
+<pre><code>## Loading required package: randomForest
+## randomForest 4.6-12
+## Type rfNews() to see new features/changes/bug fixes.
+## 
+## Attaching package: &#39;randomForest&#39;
+## 
+## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     margin</code></pre>
+<p>URLS OF SOURCE DATA</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">URL_TRAIN &lt;-<span class="st"> &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;</span>
+URL_TEST &lt;-<span class="st"> &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;</span></code></pre></div>
+<p>DATA FRAMES WITH SOURCE DATA</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">set_train &lt;-<span class="st"> </span><span class="kw">read.csv</span>(URL_TRAIN,<span class="dt">na.strings=</span><span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>,<span class="st">&quot;&quot;</span>))
+set_test &lt;-<span class="st"> </span><span class="kw">read.csv</span>(URL_TEST,<span class="dt">na.strings=</span><span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>,<span class="st">&quot;&quot;</span>))</code></pre></div>
+<p>DATA FRAMES CLEANED OUT OF ROWS CONTAINING NAs VALUES</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cells_no_NAs&lt;-<span class="kw">apply</span>(!<span class="kw">is.na</span>(set_train),<span class="dv">2</span>,sum) ==<span class="st"> </span><span class="dv">19622</span>
+cells_no_NAs[<span class="st">&quot;X&quot;</span>] &lt;-<span class="st"> </span><span class="ot">FALSE</span>
+useful_data_train &lt;-<span class="st"> </span>set_train[,cells_no_NAs]
+useful_data_test &lt;-<span class="st"> </span>set_test[,cells_no_NAs]
+
+InTrain&lt;-<span class="kw">createDataPartition</span>(<span class="dt">y=</span>useful_data_train$classe,<span class="dt">p=</span><span class="fl">0.75</span>,<span class="dt">list=</span><span class="ot">FALSE</span>)
+set_train_1 &lt;-<span class="st"> </span>useful_data_train[InTrain,]</code></pre></div>
+<p>TRAINING AN ALGORITHM BASED ON RANDOM FOREST MODEL</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">model_control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method=</span><span class="st">&quot;cv&quot;</span>,<span class="dt">number=</span><span class="dv">5</span>, <span class="dt">allowParallel=</span>T, <span class="dt">verbose=</span>T)
+random_forest_model&lt;-<span class="kw">train</span>(classe~.,<span class="dt">data=</span>set_train_1,<span class="dt">method=</span><span class="st">&quot;rf&quot;</span>,
+                <span class="dt">trControl=</span>model_control, <span class="dt">verbose =</span> F)</code></pre></div>
+<pre><code>## + Fold1: mtry= 2 
+## - Fold1: mtry= 2 
+## + Fold1: mtry=41 
+## - Fold1: mtry=41 
+## + Fold1: mtry=80 
+## - Fold1: mtry=80 
+## + Fold2: mtry= 2 
+## - Fold2: mtry= 2 
+## + Fold2: mtry=41 
+## - Fold2: mtry=41 
+## + Fold2: mtry=80 
+## - Fold2: mtry=80 
+## + Fold3: mtry= 2 
+## - Fold3: mtry= 2 
+## + Fold3: mtry=41 
+## - Fold3: mtry=41 
+## + Fold3: mtry=80 
+## - Fold3: mtry=80 
+## + Fold4: mtry= 2 
+## - Fold4: mtry= 2 
+## + Fold4: mtry=41 
+## - Fold4: mtry=41 
+## + Fold4: mtry=80 
+## - Fold4: mtry=80 
+## + Fold5: mtry= 2 
+## - Fold5: mtry= 2 
+## + Fold5: mtry=41 
+## - Fold5: mtry=41 
+## + Fold5: mtry=80 
+## - Fold5: mtry=80 
+## Aggregating results
+## Selecting tuning parameters
+## Fitting mtry = 41 on full training set</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(random_forest_model)</code></pre></div>
+<pre><code>## Random Forest 
+## 
+## 14718 samples
+##    58 predictor
+##     5 classes: &#39;A&#39;, &#39;B&#39;, &#39;C&#39;, &#39;D&#39;, &#39;E&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## Summary of sample sizes: 11775, 11774, 11774, 11774, 11775 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD    
+##    2    0.9877021  0.9844411  0.0003717216  0.0004712359
+##   41    0.9991847  0.9989687  0.0003873132  0.0004898931
+##   80    0.9986411  0.9982812  0.0006355951  0.0008040246
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 41.</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(random_forest_model$finalModel)</code></pre></div>
+<pre><code>## 
+## Call:
+##  randomForest(x = x, y = y, mtry = param$mtry, verbose = ..1) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 41
+## 
+##         OOB estimate of  error rate: 0.07%
+## Confusion matrix:
+##      A    B    C    D    E  class.error
+## A 4185    0    0    0    0 0.0000000000
+## B    2 2846    0    0    0 0.0007022472
+## C    0    4 2563    0    0 0.0015582392
+## D    0    0    3 2408    1 0.0016583748
+## E    0    0    0    0 2706 0.0000000000</code></pre>
+<p>Run prediction</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">predict</span>(random_forest_model, set_test)</code></pre></div>
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
